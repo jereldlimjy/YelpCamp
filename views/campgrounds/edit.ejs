@@ -2,29 +2,44 @@
 <div class="row">
     <div class="col-6 offset-3">
         <h1 class="text-center">Edit Campground</h1>
-        <form action="/campgrounds/<%= campground._id %>?_method=PUT" method="POST">
+        <form class="needs-validation" action="/campgrounds/<%= campground._id %>?_method=PUT" method="POST" novalidate>
             <div class="mb-3">
                 <label for="title" class="form-label">Title</label>
-                <input type="text" class="form-control" id="title" name="title" value="<%= campground.title %>" placeholder="title of campground">
+                <input type="text" class="form-control" id="title" name="title" value="<%= campground.title %>" placeholder="title of campground" required>
+                <div class="valid-feedback">
+                    Looks good!
+                </div>
             </div>
             <div class="mb-3">
                 <label for="location" class="form-label">Location</label>
-                <input type="text" class="form-control" id="location" name="location" value="<%= campground.location %>" placeholder="location of campground">
+                <input type="text" class="form-control" id="location" name="location" value="<%= campground.location %>" placeholder="location of campground" required>
+                <div class="valid-feedback">
+                    Looks good!
+                </div>
             </div>
             <div class="mb-3">
                 <label for="price" class="form-label">Price</label>
                 <div class="input-group">
                     <span class="input-group-text" id="price">$</span>
-                    <input type="text" class="form-control" placeholder="0.00" name="price" aria-label="price" aria-describedby="price">
+                    <input type="text" class="form-control" placeholder="0.00" name="price" aria-label="price" value="<%= campground.price%>" aria-describedby="price" required>
+                    <div class="valid-feedback">
+                        Looks good!
+                    </div>
                 </div>
             </div>
             <div class="mb-3">
                 <label for="image" class="form-label">Image Url</label>
-                <input type="text" class="form-control" id="image" name="image" value="<%= campground.image %>" placeholder="image url">
+                <input type="text" class="form-control" id="image" name="image" value="<%= campground.image %>" placeholder="image url" required>
+                <div class="valid-feedback">
+                    Looks good!
+                </div>
             </div>
             <div class="mb-3">
                 <label for="description" class="form-label">Description</label>
-                <textarea class="form-control" id="description" name="description" rows="5"><%= campground.description %></textarea>
+                <textarea class="form-control" id="description" name="description" rows="5" required><%= campground.description %></textarea>
+                <div class="valid-feedback">
+                    Looks good!
+                </div>
             </div>
             <div class="mb-3">
                 <button class="btn btn-info">Update campground!</button>
@@ -33,3 +48,25 @@
         <a href="/campgrounds/<%= campground._id %>">Back to campground</a>
     </div>
 </div>
+
+<script>
+    (function () {  
+        'use strict'
+      
+        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+        const forms = document.querySelectorAll('.needs-validation')
+      
+        // Loop over them and prevent submission
+        Array.from(forms)
+          .forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+              if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+              }
+      
+              form.classList.add('was-validated')
+            }, false)
+          })
+    })()
+    </script>

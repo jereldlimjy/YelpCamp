@@ -4,6 +4,9 @@ const mongoose = require('mongoose');
 const Campground = require('./models/campground');
 const methodOverride = require('method-override');
 const ejsMate = require('ejs-mate');
+const Joi = require('joi');
+const AppError = require('./utils/AppError');
+const wrapAsync = require('./utils/wrapAsync');
 
 mongoose.connect('mongodb://localhost:27017/yelp-camp', {
     useNewUrlParser: true,
@@ -20,11 +23,27 @@ db.once('open', () => {
 const app = express();
 
 app.use(methodOverride('_method'));
-app.use(express.urlencoded());
+app.use(express.urlencoded({ extended: true}));
 
 app.engine('ejs', ejsMate);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+
+const validateCampground = (req, res, next) => {
+    const campgroundSchema = Joi.object({
+        title: Joi.string().required(),
+        price: Joi.number().min(0),
+        description: Joi.string().required(),
+        location: Joi.string().required(),
+        image: Joi.string().required()
+    });
+    const { error } = campgroundSchema.validate(req.body);
+    if (error) {
+        throw new AppError(400, error);
+    } else {
+        next();
+    }
+}
 
 app.get('/', (req, res) => {
     res.render('campgrounds/home');
@@ -40,34 +59,38 @@ app.get('/campgrounds/new', (req, res) => {
     res.render('campgrounds/new');
 })
 
-app.post('/campgrounds', async (req, res) => {
-    const campground = new Campground(req.body);
+app.post('/campgrounds', validateCampground, wrapAsync(async (req, res, next) => {
+    const { title, image, price, description, location } = req.body;
+    const campground = new Campground({ title, image, price, description, location });
     await campground.save();
     res.redirect(`/campgrounds/${campground._id}`);
-})
+}))
 
-app.get('/campgrounds/:id', async (req, res) => {
-    const { id } = req.params;
-    const campground = await Campground.findById(id);
+app.get('/campgrounds/:id', wrapAsync(async (req, res, next) => {
+    const campground = await Campground.findById(req.params.id);
     res.render('campgrounds/show', { campground });
-})
+})) 
 
-app.get('/campgrounds/:id/edit', async (req, res) => {
-    const { id } = req.params;
-    const campground = await Campground.findById(id);
+app.get('/campgrounds/:id/edit', wrapAsync(async (req, res) => {
+    const campground = await Campground.findById(req.params.id);
     res.render('campgrounds/edit', { campground });
-})
+}))
 
-app.put('/campgrounds/:id', async (req, res) => {
+app.put('/campgrounds/:id', wrapAsync(async (req, res) => {
     const { id } = req.params;
     await Campground.findByIdAndUpdate(id, { ...req.body });
     res.redirect(`/campgrounds/${id}`);
-})
+}))
 
-app.delete('/campgrounds/:id', async (req, res) => {
+app.delete('/campgrounds/:id', wrapAsync(async (req, res) => {
     const { id } = req.params;
     await Campground.findByIdAndDelete(id);
     res.redirect('/campgrounds');
+}))
+
+app.use((err, req, res, next) => {
+    console.dir(err);
+    res.render('error', { err });
 })
 
 app.listen(3000);
