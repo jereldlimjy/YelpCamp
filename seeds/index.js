@@ -19,6 +19,7 @@ const sample = array => array[Math.floor(Math.random() * array.length)];
 
 // Seed database with campgrounds
 const seedDB = async () => {
+    await.
     await Campground.deleteMany({});
     for (let i = 0; i < 50; i++) {
         const rand1000 = Math.floor(Math.random() * 1000);
