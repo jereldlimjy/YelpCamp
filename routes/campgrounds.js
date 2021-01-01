@@ -4,6 +4,7 @@ const Campground = require('../models/campground');
 const wrapAsync = require('../utils/wrapAsync');
 const AppError = require('../utils/AppError');
 const Joi = require('joi');
+const { isLoggedIn } = require('../middleware');
 
 const validateCampground = (req, res, next) => {
     const campgroundSchema = Joi.object({
@@ -31,7 +32,7 @@ router.get('/campgrounds', async (req, res) => {
 })
 
 // order matters here!
-router.get('/campgrounds/new', (req, res) => {
+router.get('/campgrounds/new', isLoggedIn, (req, res) => {
     res.render('campgrounds/new');
 })
 
@@ -42,7 +43,7 @@ router.post('/campgrounds', validateCampground, wrapAsync(async (req, res, next)
     res.redirect(`/campgrounds/${campground._id}`);
 }))
 
-router.get('/campgrounds/:id', wrapAsync(async (req, res, next) => {
+router.get('/campgrounds/:id', isLoggedIn, wrapAsync(async (req, res, next) => {
     const campground = await Campground.findById(req.params.id).populate('reviews');
     res.render('campgrounds/show', { campground });
 })) 

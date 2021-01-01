@@ -3,9 +3,13 @@ const path = require('path');
 const mongoose = require('mongoose');
 const methodOverride = require('method-override');
 const ejsMate = require('ejs-mate');
-const campgrounds = require('./routes/campgrounds');
-const reviews = require('./routes/reviews');
+const campgroundRoutes = require('./routes/campgrounds');
+const reviewRoutes = require('./routes/reviews');
 const session = require('express-session');
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const User = require('./models/user');
+const userRoutes = require('./routes/users');
 
 mongoose.connect('mongodb://localhost:27017/yelp-camp', {
     useNewUrlParser: true,
@@ -41,9 +45,23 @@ const sessionConfig = {
 
 app.use(session(sessionConfig));
 
-app.use('/', campgrounds);
+app.use(passport.initialize());
+app.use(passport.session());
 
-app.use('/campgrounds/:id', reviews);
+passport.use(new LocalStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
+app.use((req, res, next) => {
+    res.locals.currentUser = req.user;
+    next();
+})
+
+app.use('/', userRoutes);
+
+app.use('/', campgroundRoutes);
+
+app.use('/campgrounds/:id', reviewRoutes);
 
 app.use((err, req, res, next) => {
     console.dir(err);
